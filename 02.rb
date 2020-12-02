@@ -7,24 +7,19 @@ class Line
     @rule.valid?(@password)
   end
 
-  def self.parse(str)
+  def self.parse(str, ruleClass)
     rule_str, password = str.split(':')
-    rule = Rule.parse(rule_str)
-    self.new(rule, password)
+    rule = ruleClass.parse(rule_str)
+    self.new(rule, password.strip)
   end
 end
 
 class Rule
-  def initialize(letter, lbound, ubound)
-    @letter, @lbound, @ubound = letter, lbound, ubound
+  def initialize(letter, no1, no2)
+    @letter, @no1, @no2 = letter, no1, no2
   end
 
   def valid?(str)
-    bounds.include?(str.count(@letter))
-  end
-
-  def bounds
-    @lbound..@ubound
   end
 
   def self.parse(str)
@@ -34,4 +29,19 @@ class Rule
   end
 end
 
-puts File.readlines('02.txt').map { |str| Line.parse(str) }.select(&:valid?).count # => 560
+class OldRule < Rule
+  def valid?(str)
+    (@no1..@no2).include?(str.count(@letter))
+  end
+end
+
+class NewRule < Rule
+  def valid?(str)
+    (str[@no1-1] == @letter) ^ (str[@no2-1] == @letter)
+  end
+end
+
+contents = File.readlines('02.txt')
+
+puts contents.map { |str| Line.parse(str, OldRule) }.select(&:valid?).count # => 560
+puts contents.map { |str| Line.parse(str, NewRule) }.select(&:valid?).count # => 560
