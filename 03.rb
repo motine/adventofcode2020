@@ -21,4 +21,6 @@ class Map < Array
 end
 
 map = Map.parse(File.readlines('03.txt'))
-puts map.count_trees(3, 1, 3, 1)
+puts map.count_trees(3, 1, 3, 1) # => 207
+
+puts [[1, 1], [3, 1], [5, 1], [7, 1], [1, 2]].map { |step_x, step_y| map.count_trees(step_x, step_y, step_x, step_y) }.reduce(:*)
