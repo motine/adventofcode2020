@@ -19,5 +19,5 @@ class Passport
 end
 
 passports = File.read('04.txt').split(/\n\n/).map { |line_group| Passport.parse(line_group) }
-puts passports.select(&:valid?).count
+puts passports.select(&:valid?).count # => 264
 
