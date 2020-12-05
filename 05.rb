@@ -19,4 +19,12 @@ class BoardingPass
   end
 end
 
-puts File.readlines('05.txt').map { |str| BoardingPass.parse(str) }.map(&:identifier).max
+identifiers = File.readlines('05.txt').map { |str| BoardingPass.parse(str) }.map(&:identifier)
+# first part
+puts identifiers.max # => 904
+
+# second part
+# idea: we find a gap in the seat number codes (because they have to be sequential)
+without_successor = identifiers.reject { |id| identifiers.include?(id + 1) }
+gap_number = without_successor.sort.first + 1 # the last number shall not have a successor, so we can remove it
+p gap_number
