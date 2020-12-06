@@ -17,8 +17,12 @@ class Group
     @answers = answers
   end
 
-  def yes_letters
+  def any_yes_letters
     @answers.reduce(Set.new) { |memo, answer| memo.merge(answer.yes_letters) }
+  end
+
+  def all_yes_letters
+    @answers.map { |answer| Set.new(answer.yes_letters) }.reduce { |memo, letter_set| memo & letter_set }
   end
 
   def self.parse(str)
@@ -28,4 +32,6 @@ class Group
 end
 
 groups = File.read('06.txt').split("\n\n").map { |group_str| Group.parse(group_str) }
-p groups.map(&:yes_letters).map { |letters| letters.count }.sum # => 6878
+p groups.map(&:any_yes_letters).map { |letters| letters.count }.sum # => 6878
+p groups.map(&:all_yes_letters).map { |letters| letters.count }.sum # => 3464
+
