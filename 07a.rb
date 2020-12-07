@@ -25,3 +25,4 @@ end
 
 File.readlines('07.txt').each { |str| Rule.parse(str) }
 p Rule.colors_containing('shiny gold').count - 1 # we are counting the rule for the color itself so we subtract 1
+# => 272
