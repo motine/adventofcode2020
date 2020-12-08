@@ -18,7 +18,7 @@ module Instruction
 end
 
 class Program
-  class RanBefore < StandardError; end
+  class LoopDetected < StandardError; end
   class Unchanged < StandardError; end
 
   # may be modified by Instructions
@@ -32,19 +32,20 @@ class Program
     @counter = 0
   end
 
-  # def initialize_copy(original_program)
-  #   @instructions = original_program.instance_variable_get(:@instructions).collect { |instruction| instruction.dup }
-  #   @accumulator = 0
-  #   @counter = 0
-  # end
+  def initialize_copy(original_program)
+    @instructions = original_program.instance_variable_get(:@instructions).collect { |op, params, _visited| [op, params, false]  }
+    @instruction_indexes_run_before = []
+    @accumulator = 0
+    @counter = 0
+  end
 
   def instruction_count
     @instructions.count
   end
 
   def run
-    loop do
-      raise RanBefore if @instruction_indexes_run_before.include?(@counter)
+    while @counter < instruction_count do
+      raise LoopDetected if @instruction_indexes_run_before.include?(@counter)
       @instruction_indexes_run_before << @counter
 
       operation, params = @instructions[@counter]
@@ -62,20 +63,16 @@ class Program
     end
   end
 
-  # def repair(instruction_index)
-  #   instruction = @instructions[instruction_index]
-  #   if instruction.is_a?(Instruction::Nop)
-  #     @instructions[instruction_index] = Instruction::Jmp.new(self, instruction.param)
-  #   elsif instruction.is_a?(Instruction::Jmp)
-  #     @instructions[instruction_index] = Instruction::Nop.new(self, instruction.param)
-  #   else
-  #     raise Unchanged
-  #   end
-  # end
-
-  # def inspect # TODO remove
-  #   @instructions.collect {|instruction| instruction.class.name[-3..-1] }.join(', ')
-  # end
+  def repair(index)
+    op, _params, _visited = @instructions[index]
+    if op == 'nop'
+      @instructions[index][0] = 'jmp'
+    elsif op == 'jmp'
+      @instructions[index][0] = 'nop'
+    else
+      raise Unchanged
+    end
+  end
 end
 
 program = Program.new
@@ -85,20 +82,19 @@ program.parse(File.readlines('08.txt'))
 begin
   program2 = program.dup
   program2.run
-rescue Program::RanBefore
+rescue Program::LoopDetected
   puts "part 1: #{program2.accumulator}" # => 1394
 end
 
-# # part 2
-# (0..program.instruction_count).each do |i|
-#   varied_program = program.dup
-#   # varied_program.repair(i)
-#   varied_program.run
-#   puts "part 2: #{varied_program.accumulator}"
-#   break
-# rescue Program::Unchanged
-#   # ignore unchanged programs
-# rescue Instruction::RanBefore
-#   puts "xxx" + varied_program.accumulator.to_s
-#   # ignore non-terminating program
-# end
+# part 2
+(0..program.instruction_count).each do |i|
+  varied_program = program.dup
+  varied_program.repair(i)
+  varied_program.run
+  puts "part 2: #{varied_program.accumulator}"
+  break
+rescue Program::Unchanged
+  # ignore unchanged programs
+rescue Program::LoopDetected
+  # ignore non-terminating program
+end
