@@ -1,4 +1,6 @@
-module Instructions
+module Instruction
+  class RanBefore < StandardError; end
+
   class Base
     def initialize(program, param)
       @program, @param = program, param
@@ -7,7 +9,8 @@ module Instructions
 
     def run(increment_counter: true)
       @program.counter += 1 if increment_counter
-      raise @program.accumulator.to_s if @ran_before
+
+      raise RanBefore if @ran_before
       @ran_before = true
     end
   end
@@ -54,7 +57,7 @@ class Program
     @instructions = lines.collect do |line|
       operation, *params = line.split(' ')
       operation_class_name = "#{operation[0].upcase}#{operation[1..-1]}" # upcase first letter (poor mans titlize)
-      operation_class = Instructions.const_get(operation_class_name)
+      operation_class = Instruction.const_get(operation_class_name)
       operation_class.new(self, *params)
     end
   end
@@ -62,4 +65,8 @@ end
 
 program = Program.new
 program.parse(File.readlines('08.txt'))
-program.run
+begin
+  program.run
+rescue Instruction::RanBefore
+  puts program.accumulator # => 1394
+end
